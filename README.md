@@ -1,3 +1,5 @@
+https://goreportcard.com/badge/github.com/fchikwekwe/TweetRecall
+
 Welcome to Tweet Recall 🐦 !
 
 This twitter bot makes interacting with consumers easier by helping to like 👍 , retweet 📱 and archive 🗄 tweets that meet certain criteria. Building off concepts discussed in <a href="/elliotforbes/tutorialedge-v2">Tutorial Edge's Golang Twitter Bot Tutorial</a>, this bot will satisfy the following proposal:

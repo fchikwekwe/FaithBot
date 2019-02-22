@@ -66,6 +66,19 @@ func searchTweets(client *twitter.Client) {
 	log.Printf("%+v\n", search)
 }
 
+func sendRetweet(client *twitter.Client) {
+	retweet, resp, err := client.Statuses.Retweet(&twitter.StatusRetweetParams{
+		// ID        int64  `url:"id,omitempty"`
+		// TrimUser  *bool  `url:"trim_user,omitempty"`
+		// TweetMode string `url:"tweet_mode,omitempty"`
+	})
+	if err != nil {
+		log.Print(err)
+	}
+	log.Printf("%+v\n", resp)
+	log.Printf("%+v\n", retweet)
+}
+
 func main() {
 	fmt.Println("Go-Twitter Bot v0.02")
 	creds := Credentials{
