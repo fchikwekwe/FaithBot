@@ -1,1 +1,1 @@
-Nifty Twitter Bot in Golang for BEW 2.5 
+Nifty Twitter Bot in Golang for BEW 2.5
