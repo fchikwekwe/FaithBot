@@ -67,15 +67,13 @@ func searchTweets(client *twitter.Client) {
 }
 
 func main() {
-	fmt.Println("Go-Twitter Bot v0.01")
+	fmt.Println("Go-Twitter Bot v0.02")
 	creds := Credentials{
 		AccessToken:       os.Getenv("ACCESS_TOKEN"),
 		AccessTokenSecret: os.Getenv("ACCESS_TOKEN_SECRET"),
 		ConsumerKey:       os.Getenv("CONSUMER_KEY"),
 		ConsumerSecret:    os.Getenv("CONSUMER_SECRET"),
 	}
-
-	// fmt.Printf("%+v\n", creds)
 
 	client, err := getClient(&creds)
 	if err != nil {
@@ -85,5 +83,6 @@ func main() {
 
 	fmt.Println("TYPE", reflect.TypeOf(client))
 	sendTweet(client)
+	searchTweets(client)
 
 }
