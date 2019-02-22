@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	// Import go-twitter modules
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -45,6 +46,26 @@ func getClient(creds *Credentials) (*twitter.Client, error) {
 	return client, nil
 }
 
+func sendTweet(client *twitter.Client) {
+	tweet, resp, err := client.Statuses.Update("A test tweet from a new bot I'm building!", nil)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("%+v\n", resp)
+	log.Printf("%+v\n", tweet)
+}
+
+func searchTweets(client *twitter.Client) {
+	search, resp, err := client.Search.Tweets(&twitter.SearchTweetParams{
+		Query: "Golang",
+	})
+	if err != nil {
+		log.Print(err)
+	}
+	log.Printf("%+v\n", resp)
+	log.Printf("%+v\n", search)
+}
+
 func main() {
 	fmt.Println("Go-Twitter Bot v0.01")
 	creds := Credentials{
@@ -62,21 +83,7 @@ func main() {
 		log.Println(err)
 	}
 
-	tweet, resp, err := client.Statuses.Update("A test tweet from a new bot I'm building!", nil)
-	if err != nil {
-		log.Println(err)
-	}
-	log.Printf("%+v\n", resp)
-	log.Printf("%+v\n", tweet)
+	fmt.Println("TYPE", reflect.TypeOf(client))
+	sendTweet(client)
 
-	search, resp, err := client.Search.Tweets(&twitter.SearchTweetParams{
-		Query: "Golang",
-	})
-
-	if err != nil {
-		log.Print(err)
-	}
-
-	log.Printf("%+v\n", resp)
-	log.Printf("%+v\n", search)
 }
