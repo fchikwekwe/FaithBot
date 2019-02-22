@@ -1,4 +1,4 @@
-https://goreportcard.com/badge/github.com/fchikwekwe/TweetRecall
+<!-- https://goreportcard.com/badge/github.com/fchikwekwe/TweetRecall -->
 [![Go Report Card](https://goreportcard.com/badge/fchikwekwe/TweetRecall](https://goreportcard.com/report/TweetRecall)
 
 Welcome to Tweet Recall 🐦 !
