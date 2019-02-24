@@ -78,6 +78,17 @@ func sendRetweet(client *twitter.Client) {
 	log.Printf("%+v\n", retweet)
 }
 
+func likeTweet(client *twitter.Client) {
+	search := searchTweets(client)
+	like, _, err := client.Favorites.Create(&twitter.FavoriteCreateParams{
+		ID: search.Statuses[0].ID,
+	})
+	if err != nil {
+		log.Print(err)
+	}
+	log.Printf("%+v\n", like)
+}
+
 func main() {
 	fmt.Println("Go-Twitter Bot v0.02")
 	creds := Credentials{
@@ -98,6 +109,7 @@ func main() {
 	// fmt.Println("TYPE", reflect.TypeOf(client))
 	// sendTweet(client)
 	// searchTweets(client)
-	sendRetweet(client)
+	// sendRetweet(client)
+	likeTweet(client)
 
 }
