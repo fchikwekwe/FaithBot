@@ -20,7 +20,6 @@ type Credentials struct {
 
 // getClient is a helper function that will return a twitter client
 // that we can subsequently use to send tweets, or to stream new tweets
-
 func getClient(creds *Credentials) (*twitter.Client, error) {
 	// Pass in the consumer key (API Key) and your Consumer Secret (API Secret)
 	config := oauth1.NewConfig(creds.ConsumerKey, creds.ConsumerSecret)
@@ -69,13 +68,13 @@ func searchTweets(client *twitter.Client) *twitter.Search {
 
 func sendRetweet(client *twitter.Client) {
 	search := searchTweets(client)
-	retweet, resp, err := client.Statuses.Retweet(1, &twitter.StatusRetweetParams{
+	retweet, _, err := client.Statuses.Retweet(search.Statuses[0].ID, &twitter.StatusRetweetParams{
 		ID: search.Statuses[0].ID,
 	})
 	if err != nil {
 		log.Print(err)
 	}
-	log.Printf("%+v\n", resp)
+	// log.Printf("%+v\n", resp)
 	log.Printf("%+v\n", retweet)
 }
 
@@ -89,6 +88,7 @@ func main() {
 	}
 
 	client, err := getClient(&creds)
+	// fmt.Println("client", client, creds)
 
 	if err != nil {
 		log.Println("Error getting Twitter Client")

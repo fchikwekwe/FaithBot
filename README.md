@@ -1,4 +1,3 @@
-<!-- https://goreportcard.com/badge/github.com/fchikwekwe/TweetRecall -->
 ![Go Report Card](https://goreportcard.com/badge/fchikwekwe/TweetRecall)
 
 Welcome to Tweet Recall 🐦 !
