@@ -1,9 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 	"os"
+	// Import mySQL
+
+	_ "github.com/go-sql-driver/mysql"
+
 	// Import go-twitter modules
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -18,9 +22,9 @@ type Credentials struct {
 	AccessTokenSecret string
 }
 
-// getClient is a helper function that will return a twitter client
+// GetClient is a helper function that will return a twitter client
 // that we can subsequently use to send tweets, or to stream new tweets
-func getClient(creds *Credentials) (*twitter.Client, error) {
+func GetClient(creds *Credentials) (*twitter.Client, error) {
 	// Pass in the consumer key (API Key) and your Consumer Secret (API Secret)
 	config := oauth1.NewConfig(creds.ConsumerKey, creds.ConsumerSecret)
 	// Pass in the Access Token and the Access Token Secret
@@ -44,19 +48,36 @@ func getClient(creds *Credentials) (*twitter.Client, error) {
 	return client, nil
 }
 
-func sendTweet(client *twitter.Client) *twitter.Tweet {
-	tweet, resp, err := client.Statuses.Update("A test tweet from a new bot I'm building!", nil)
+// GetCreds creates and returns a struct that gets the required environment
+// variables for user authentication with the Twitter API
+func GetCreds() Credentials {
+	creds := Credentials{
+		AccessToken:       os.Getenv("ACCESS_TOKEN"),
+		AccessTokenSecret: os.Getenv("ACCESS_TOKEN_SECRET"),
+		ConsumerKey:       os.Getenv("CONSUMER_KEY"),
+		ConsumerSecret:    os.Getenv("CONSUMER_SECRET"),
+	}
+	return creds
+}
+
+// SendTweet sends a tweet with the specified text passed in as a string and
+// returns a Tweet object.
+func SendTweet(client *twitter.Client, tweetText string) *twitter.Tweet {
+	tweet, _, err := client.Statuses.Update(tweetText, nil)
 	if err != nil {
 		log.Println(err)
 	}
-	log.Printf("%+v\n", resp)
+	// log.Printf("%+v\n", resp)
 	log.Printf("%+v\n", tweet)
 	return tweet
 }
 
-func searchTweets(client *twitter.Client) *twitter.Search {
+// SearchTweets searches for the given hashtag. It takes hashtag as the query
+// argument (type string) as well as the twitter client. It returns a slice of
+// Tweet objects.
+func SearchTweets(client *twitter.Client, query string) *twitter.Search {
 	search, _, err := client.Search.Tweets(&twitter.SearchTweetParams{
-		Query: "Golang",
+		Query: query,
 	})
 	if err != nil {
 		log.Print(err)
@@ -66,8 +87,11 @@ func searchTweets(client *twitter.Client) *twitter.Search {
 	return search
 }
 
-func sendRetweet(client *twitter.Client) {
-	search := searchTweets(client)
+// SendRetweet retweets the first retruned tweet after searching with the given
+// hashtag. The hashtag must be passed in as a string along with the twitter
+// client.
+func SendRetweet(client *twitter.Client, searchQuery string) {
+	search := SearchTweets(client, searchQuery)
 	retweet, _, err := client.Statuses.Retweet(search.Statuses[0].ID, &twitter.StatusRetweetParams{
 		ID: search.Statuses[0].ID,
 	})
@@ -78,8 +102,11 @@ func sendRetweet(client *twitter.Client) {
 	log.Printf("%+v\n", retweet)
 }
 
-func likeTweet(client *twitter.Client) {
-	search := searchTweets(client)
+// LikeTweet sends a like to the first returned tweet after searching with the
+// given hashtag. The hashtag is passed in as a string along with the twitter
+// client.
+func LikeTweet(client *twitter.Client, searchQuery string) {
+	search := SearchTweets(client, searchQuery)
 	like, _, err := client.Favorites.Create(&twitter.FavoriteCreateParams{
 		ID: search.Statuses[0].ID,
 	})
@@ -89,27 +116,52 @@ func likeTweet(client *twitter.Client) {
 	log.Printf("%+v\n", like)
 }
 
-func main() {
-	fmt.Println("Go-Twitter Bot v0.02")
-	creds := Credentials{
-		AccessToken:       os.Getenv("ACCESS_TOKEN"),
-		AccessTokenSecret: os.Getenv("ACCESS_TOKEN_SECRET"),
-		ConsumerKey:       os.Getenv("CONSUMER_KEY"),
-		ConsumerSecret:    os.Getenv("CONSUMER_SECRET"),
+type tweet struct {
+	ID     int    `json:"id"`
+	Text   string `json:"text"`
+	Action string `json:"action"`
+}
+
+func accessDB() {
+	dbPass := os.Getenv("DB_PASS")
+	db, err := sql.Open("mysql", "root:"+dbPass+"@tcp(127.0.0.1:3306)/")
+	if err != nil {
+		panic(err.Error())
 	}
 
-	client, err := getClient(&creds)
-	// fmt.Println("client", client, creds)
+	_, err = db.Exec("CREATE DATABASE tweetRecall")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	_, err = db.Exec("USE tweetRecall")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	defer db.Close()
+
+	insert, err := db.Query("INSERT INTO test VALUES (2, 'TEST' )")
 
 	if err != nil {
-		log.Println("Error getting Twitter Client")
-		log.Println(err)
+		panic(err.Error())
 	}
 
-	// fmt.Println("TYPE", reflect.TypeOf(client))
-	// sendTweet(client)
-	// searchTweets(client)
-	// sendRetweet(client)
-	likeTweet(client)
-
+	defer insert.Close()
+}
+func main() {
+	// Get auth credentials and the Twitter client
+	// creds := GetCreds()
+	// client, err := GetClient(&creds)
+	// if err != nil {
+	// 	log.Println("Error getting Twitter Client")
+	// 	log.Println(err)
+	// }
+	// searchQuery := "Golang"
+	// testTweet := "*beep* Test tweet from my bot. *beep*"
+	// Examples of how to use the various functions this bot has
+	// SendTweet(client, testTweet)
+	// SearchTweets(client, searchQuery)
+	// SendRetweet(client, searchQuery)
+	// LikeTweet(client, searchQuery)
 }
