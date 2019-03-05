@@ -129,7 +129,7 @@ type tweet struct {
 
 func saveTweet(tweetID int64, tweetText string, tweetAction string) {
 	// Open DB
-	db, err := gorm.Open("postgres", "host=http://faithbot.herokuapp.com/ port=7822")
+	db, err := gorm.Open("postgres", "host="+os.Getenv("host")+"port=5432"+"user="+os.Getenv("user")+"dbname="+os.Getenv("dbname")+"password"+os.Getenv("password"))
 	if err != nil {
 		log.Print(err)
 	}
