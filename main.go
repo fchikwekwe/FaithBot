@@ -5,7 +5,7 @@ import (
 	"os"
 	// Import gorm and sqlite
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	// Import go-twitter modules
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -66,7 +66,7 @@ func SendTweet(client *twitter.Client, tweetText string) *twitter.Tweet {
 		log.Println(err)
 	}
 
-	saveTweet(tweet.ID, tweet.Text, "tweet")
+	// saveTweet(tweet.ID, tweet.Text, "tweet")
 
 	log.Printf("%+v\n", tweet)
 	return tweet
@@ -82,13 +82,14 @@ func SearchTweets(client *twitter.Client, query string) *twitter.Search {
 	if err != nil {
 		log.Print(err)
 	}
+	// saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "search")
 	return search
 }
 
 // SendRetweet retweets the first retruned tweet after searching with the given
 // hashtag. The hashtag must be passed in as a string along with the twitter
 // client.
-func SendRetweet(client *twitter.Client, searchQuery string) {
+func SendRetweet(client *twitter.Client, searchQuery string) *twitter.Tweet {
 	search := SearchTweets(client, searchQuery)
 	retweet, _, err := client.Statuses.Retweet(search.Statuses[0].ID, &twitter.StatusRetweetParams{
 		ID: search.Statuses[0].ID,
@@ -96,16 +97,17 @@ func SendRetweet(client *twitter.Client, searchQuery string) {
 	if err != nil {
 		log.Print(err)
 	}
-	saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "retweet")
+	// saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "retweet")
 
 	// log.Printf("%+v\n", resp)
 	log.Printf("%+v\n", retweet)
+	return retweet
 }
 
 // LikeTweet sends a like to the first returned tweet after searching with the
 // given hashtag. The hashtag is passed in as a string along with the twitter
 // client.
-func LikeTweet(client *twitter.Client, searchQuery string) {
+func LikeTweet(client *twitter.Client, searchQuery string) *twitter.Tweet {
 	search := SearchTweets(client, searchQuery)
 	like, _, err := client.Favorites.Create(&twitter.FavoriteCreateParams{
 		ID: search.Statuses[0].ID,
@@ -113,9 +115,10 @@ func LikeTweet(client *twitter.Client, searchQuery string) {
 	if err != nil {
 		log.Print(err)
 	}
-	saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "like")
+	// saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "like")
 
 	log.Printf("%+v\n", like)
+	return like
 }
 
 // tweet is a struct that saves tweets for the user. It records the tweet ID,
@@ -127,16 +130,25 @@ type tweet struct {
 	Action  string // options: like, tweet, retweet
 }
 
-func saveTweet(tweetID int64, tweetText string, tweetAction string) {
+func initDB() *gorm.DB {
+	// Move 137 through 144 here and run this method in main()
+	// make sure to return db object!
 	// Open DB
-	db, err := gorm.Open("postgres", "host="+os.Getenv("host")+"port=5432"+"user="+os.Getenv("user")+"dbname="+os.Getenv("dbname")+"password"+os.Getenv("password"))
+	db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 dbname=faith1 username=faith1")
+	//db, err := gorm.Open("postgres", "host=127.0.0.1 "+"port=5432 "+"user="+os.Getenv("user")+" dbname="+os.Getenv("dbname")+" password="+os.Getenv("password"))
 	if err != nil {
 		log.Print(err)
 	}
 	defer db.Close()
+	return db
+}
+
+func saveTweet(db *gorm.DB, tweetID int64, tweetText string, tweetAction string) {
+	db.AutoMigrate(&tweet{})
 
 	// Create
 	db.Create(&tweet{tweetID: tweetID, Text: tweetText, Action: tweetAction})
+	log.Println("hi!")
 }
 
 func main() {
@@ -147,11 +159,13 @@ func main() {
 		log.Println("Error getting Twitter Client")
 		log.Println(err)
 	}
-	// searchQuery := "Golang"
-	testTweet := "*beep* Another test tweet from my bot. Checking data persistence. *beep*"
+	searchQuery := "Golang"
+	// testTweet := "*beep* Another test tweet from my bot. Checking data persistence. *beep*"
 	// Examples of how to use the various functions this bot has
-	SendTweet(client, testTweet)
-	// SearchTweets(client, searchQuery)
+	// SendTweet(client, testTweet)
+	db := initDB()
+	search := SearchTweets(client, searchQuery)
+	saveTweet(db, search.Statuses[0].ID, search.Statuses[0].Text, "search")
 	// SendRetweet(client, searchQuery)
 	// LikeTweet(client, searchQuery)
 }
