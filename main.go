@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 	// Import gorm and sqlite
 	"github.com/jinzhu/gorm"
@@ -9,6 +10,8 @@ import (
 	// Import go-twitter modules
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
+	// Import echo
+	"github.com/labstack/echo"
 )
 
 // Credentials stores all of our access/consumer tokens and secret keys needed
@@ -134,8 +137,8 @@ func initDB() *gorm.DB {
 	// Move 137 through 144 here and run this method in main()
 	// make sure to return db object!
 	// Open DB
-	db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 dbname=faith1 user=faith1 sslmode=disable")
-	//db, err := gorm.Open("postgres", "host=127.0.0.1 "+"port=5432 "+"user="+os.Getenv("user")+" dbname="+os.Getenv("dbname")+" password="+os.Getenv("password"))
+	// db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 dbname=faith1 user=faith1 sslmode=disable")
+	db, err := gorm.Open("postgres", "host=%s port=%s user=%s dbname=%s sslmode=disable", os.Getenv("host"), os.Getenv("port"), os.Getenv("user"), os.Getenv("dbname"))
 	if err != nil {
 		log.Print(err)
 	}
@@ -163,9 +166,17 @@ func main() {
 	// testTweet := "*beep* Another test tweet from my bot. Checking data persistence. *beep*"
 	// Examples of how to use the various functions this bot has
 	// SendTweet(client, testTweet)
-	db := initDB()
-	search := SearchTweets(client, searchQuery)
-	saveTweet(db, search.Statuses[0].ID, search.Statuses[0].Text, "search")
+
 	// SendRetweet(client, searchQuery)
 	// LikeTweet(client, searchQuery)
+
+	server := echo.New()
+
+	server.GET("/search", func(context echo.Context) error {
+		db := initDB()
+		search := SearchTweets(client, searchQuery)
+		saveTweet(db, search.Statuses[0].ID, search.Statuses[0].Text, "search")
+
+		return context.JSON(http.StatusOK, search)
+	})
 }
