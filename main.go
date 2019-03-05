@@ -1,13 +1,11 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"os"
-	// Import mySQL
-
-	_ "github.com/go-sql-driver/mysql"
-
+	// Import gorm and sqlite
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	// Import go-twitter modules
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -67,7 +65,9 @@ func SendTweet(client *twitter.Client, tweetText string) *twitter.Tweet {
 	if err != nil {
 		log.Println(err)
 	}
-	// log.Printf("%+v\n", resp)
+
+	saveTweet(tweet.ID, tweet.Text, "tweet")
+
 	log.Printf("%+v\n", tweet)
 	return tweet
 }
@@ -82,8 +82,6 @@ func SearchTweets(client *twitter.Client, query string) *twitter.Search {
 	if err != nil {
 		log.Print(err)
 	}
-	// log.Printf("%+v\n", resp)
-	log.Println("\n\n", search.Statuses[0].Text, search.Statuses[0].ID)
 	return search
 }
 
@@ -98,6 +96,8 @@ func SendRetweet(client *twitter.Client, searchQuery string) {
 	if err != nil {
 		log.Print(err)
 	}
+	saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "retweet")
+
 	// log.Printf("%+v\n", resp)
 	log.Printf("%+v\n", retweet)
 }
@@ -113,54 +113,44 @@ func LikeTweet(client *twitter.Client, searchQuery string) {
 	if err != nil {
 		log.Print(err)
 	}
+	saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "like")
+
 	log.Printf("%+v\n", like)
 }
 
+// tweet is a struct that saves tweets for the user. It records the tweet ID,
+// the tweet's text and the action that was taken by the user on that tweet
 type tweet struct {
-	ID     int    `json:"id"`
-	Text   string `json:"text"`
-	Action string `json:"action"`
+	gorm.Model
+	tweetID int64
+	Text    string
+	Action  string // options: like, tweet, retweet
 }
 
-func accessDB() {
-	dbPass := os.Getenv("DB_PASS")
-	db, err := sql.Open("mysql", "root:"+dbPass+"@tcp(127.0.0.1:3306)/")
+func saveTweet(tweetID int64, tweetText string, tweetAction string) {
+	// Open DB
+	db, err := gorm.Open("sqlite3", "tweet.db")
 	if err != nil {
-		panic(err.Error())
+		log.Print(err)
 	}
-
-	_, err = db.Exec("CREATE DATABASE tweetRecall")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	_, err = db.Exec("USE tweetRecall")
-	if err != nil {
-		panic(err.Error())
-	}
-
 	defer db.Close()
 
-	insert, err := db.Query("INSERT INTO test VALUES (2, 'TEST' )")
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	defer insert.Close()
+	// Create
+	db.Create(&tweet{tweetID: tweetID, Text: tweetText, Action: tweetAction})
 }
+
 func main() {
 	// Get auth credentials and the Twitter client
-	// creds := GetCreds()
-	// client, err := GetClient(&creds)
-	// if err != nil {
-	// 	log.Println("Error getting Twitter Client")
-	// 	log.Println(err)
-	// }
+	creds := GetCreds()
+	client, err := GetClient(&creds)
+	if err != nil {
+		log.Println("Error getting Twitter Client")
+		log.Println(err)
+	}
 	// searchQuery := "Golang"
-	// testTweet := "*beep* Test tweet from my bot. *beep*"
+	testTweet := "*beep* Another test tweet from my bot. Checking data persistence. *beep*"
 	// Examples of how to use the various functions this bot has
-	// SendTweet(client, testTweet)
+	SendTweet(client, testTweet)
 	// SearchTweets(client, searchQuery)
 	// SendRetweet(client, searchQuery)
 	// LikeTweet(client, searchQuery)
