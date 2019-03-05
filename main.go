@@ -134,12 +134,12 @@ func initDB() *gorm.DB {
 	// Move 137 through 144 here and run this method in main()
 	// make sure to return db object!
 	// Open DB
-	db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 dbname=faith1 username=faith1")
+	db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 dbname=faith1 user=faith1 sslmode=disable")
 	//db, err := gorm.Open("postgres", "host=127.0.0.1 "+"port=5432 "+"user="+os.Getenv("user")+" dbname="+os.Getenv("dbname")+" password="+os.Getenv("password"))
 	if err != nil {
 		log.Print(err)
 	}
-	defer db.Close()
+	// defer db.Close()
 	return db
 }
 
