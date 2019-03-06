@@ -183,5 +183,5 @@ func main() {
 	})
 	defer db.Close()
 
-	server.Logger.Fatal(server.Start(os.Getenv("PORT")))
+	server.Logger.Fatal(server.Start(":" + os.Getenv("PORT")))
 }
