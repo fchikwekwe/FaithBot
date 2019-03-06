@@ -148,11 +148,10 @@ func initDB() *gorm.DB {
 	return db
 }
 
-func saveTweet(db *gorm.DB, tweetID int64, tweetText string, tweetAction string) {
+func saveTweet(db *gorm.DB, tweetID int64, tweetText string, tweetAction string) *gorm.DB {
 
 	// Create
-	db.Create(&tweet{tweetID: tweetID, Text: tweetText, Action: tweetAction})
-	log.Println("hi!")
+	return db.Create(&tweet{tweetID: tweetID, Text: tweetText, Action: tweetAction})
 }
 
 func main() {
@@ -174,13 +173,54 @@ func main() {
 
 	server := echo.New()
 
+	server.GET("/", func(context echo.Context) error {
+		return context.HTML(http.StatusOK, `
+			<a href='/search'>To search and save a tweet about Golang, click here.</a>
+			<br>
+			<a href='/like'>To like a tweet a searched tweet about Golang, click here.</a>
+			<br>
+			<a href='/tweet'>To send a tweet, click here.</a>
+			<br>
+			<a href='/retweet'> To send a retweet a searched tweet about Golang, click here.</a>
+			<br>`)
+	})
+
 	server.GET("/search", func(context echo.Context) error {
 
 		search := SearchTweets(client, searchQuery)
 		saveTweet(db, search.Statuses[0].ID, search.Statuses[0].Text, "search")
 
-		return context.JSON(http.StatusOK, search)
+		return context.JSON(http.StatusOK, search.Statuses[0].Text)
 	})
+
+	server.GET("/like", func(context echo.Context) error {
+
+		search := SearchTweets(client, searchQuery)
+		LikeTweet(client, searchQuery)
+		saveTweet(db, search.Statuses[0].ID, search.Statuses[0].Text, "like")
+		// query := db.Find(&tweet{})
+
+		return context.JSON(http.StatusOK, search.Statuses[0].Text)
+	})
+
+	server.GET("/retweet", func(context echo.Context) error {
+
+		search := SearchTweets(client, searchQuery)
+		SendRetweet(client, searchQuery)
+		saveTweet(db, search.Statuses[0].ID, search.Statuses[0].Text, "retweet")
+
+		return context.JSON(http.StatusOK, search.Statuses[0].Text)
+	})
+
+	server.GET("/tweet", func(context echo.Context) error {
+
+		tweetText := "*beep, boop* A test tweet from my bot *beep, boop*"
+		tweet := SendTweet(client, tweetText)
+		saveTweet(db, tweet.ID, tweetText, "tweet")
+
+		return context.JSON(http.StatusOK, tweetText)
+	})
+
 	defer db.Close()
 
 	server.Logger.Fatal(server.Start(":" + os.Getenv("PORT")))
