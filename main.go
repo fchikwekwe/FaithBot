@@ -1,16 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
-	// Import gorm and sqlite
+	// Import gorm and postgres
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	// Import go-twitter modules
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	// Import echo
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/labstack/echo"
 )
 
@@ -138,16 +140,15 @@ func initDB() *gorm.DB {
 	// make sure to return db object!
 	// Open DB
 	// db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 dbname=faith1 user=faith1 sslmode=disable")
-	db, err := gorm.Open("postgres", "host=%s port=%s user=%s dbname=%s sslmode=disable", os.Getenv("host"), os.Getenv("port"), os.Getenv("user"), os.Getenv("dbname"))
+	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable", os.Getenv("host"), os.Getenv("DB_PORT"), os.Getenv("user"), os.Getenv("dbname")))
 	if err != nil {
 		log.Print(err)
 	}
-	// defer db.Close()
+	db.AutoMigrate(&tweet{})
 	return db
 }
 
 func saveTweet(db *gorm.DB, tweetID int64, tweetText string, tweetAction string) {
-	db.AutoMigrate(&tweet{})
 
 	// Create
 	db.Create(&tweet{tweetID: tweetID, Text: tweetText, Action: tweetAction})
@@ -169,14 +170,18 @@ func main() {
 
 	// SendRetweet(client, searchQuery)
 	// LikeTweet(client, searchQuery)
+	db := initDB()
 
 	server := echo.New()
 
 	server.GET("/search", func(context echo.Context) error {
-		db := initDB()
+
 		search := SearchTweets(client, searchQuery)
 		saveTweet(db, search.Statuses[0].ID, search.Statuses[0].Text, "search")
 
 		return context.JSON(http.StatusOK, search)
 	})
+	defer db.Close()
+
+	server.Logger.Fatal(server.Start(os.Getenv("PORT")))
 }
