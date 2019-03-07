@@ -1,6 +1,6 @@
 ![Go Report Card](https://goreportcard.com/badge/fchikwekwe/TweetRecall)
 
-# Faith - Manage your Twitter account with ease
+# FaithBot - Manage your Twitter account with ease
 
 This twitter bot makes interacting with consumers easier by helping to like 👍 , retweet 📱 and archive 🗄 tweets that meet certain criteria. Building off concepts discussed in <a href="/elliotforbes/tutorialedge-v2">Tutorial Edge's Golang Twitter Bot Tutorial</a>, this bot will satisfy the following proposal:
 
