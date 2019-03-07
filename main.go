@@ -136,10 +136,7 @@ type tweet struct {
 }
 
 func initDB() *gorm.DB {
-	// Move 137 through 144 here and run this method in main()
-	// make sure to return db object!
 	// Open DB
-	// db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 dbname=faith1 user=faith1 sslmode=disable")
 	db, err := gorm.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable", os.Getenv("host"), os.Getenv("DB_PORT"), os.Getenv("user"), os.Getenv("dbname")))
 	if err != nil {
 		log.Print(err)
@@ -154,12 +151,9 @@ func saveTweet(db *gorm.DB, tweetID int64, tweetText string, tweetAction string)
 	return db.Create(&tweet{tweetID: tweetID, Text: tweetText, Action: tweetAction})
 }
 
-func createTweet(context echo.Context) error {
-	newTweet := context.FormValue("")
-
-	log.Print(newTweet)
-
-	return context.JSON(200, newTweet)
+func createTweet(context echo.Context) string {
+	newTweet := context.FormValue("tweet")
+	return newTweet
 }
 
 func main() {
@@ -224,22 +218,24 @@ func main() {
 		return context.HTML(http.StatusOK, `
 			<form method=POST action='/tweets'>
 				<label for='tweetText'>Enter the text for your tweet:</label>
-				<input id='tweetText' type='text'>
+				<input id='tweetText' type='text' name='tweet'>
 				<input type='submit' value='Submit'>
 			</form>
 			`)
 	})
 
-	server.POST("/tweets", createTweet)
-
-	server.GET("/tweet", func(context echo.Context) error {
-
-		tweetText := "*beep, boop* A test tweet from my bot *beep, boop*"
-		tweet := SendTweet(client, tweetText)
-		saveTweet(db, tweet.ID, tweetText, "tweet")
-
+	server.POST("/tweets", func(context echo.Context) error {
+		tweetText := createTweet(context)
+		SendTweet(client, tweetText)
 		return context.JSON(http.StatusOK, tweetText)
 	})
+
+	// server.GET("/tweet", func(context echo.Context) error {
+	//
+	// 	tweetText := "*beep, boop* A test tweet from my bot *beep, boop*"
+	//
+	// 	return context.JSON(http.StatusOK, tweetText)
+	// })
 
 	defer db.Close()
 
