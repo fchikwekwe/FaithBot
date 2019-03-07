@@ -70,9 +70,6 @@ func SendTweet(client *twitter.Client, tweetText string) *twitter.Tweet {
 	if err != nil {
 		log.Println(err)
 	}
-
-	// saveTweet(tweet.ID, tweet.Text, "tweet")
-
 	log.Printf("%+v\n", tweet)
 	return tweet
 }
@@ -87,7 +84,6 @@ func SearchTweets(client *twitter.Client, query string) *twitter.Search {
 	if err != nil {
 		log.Print(err)
 	}
-	// saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "search")
 	return search
 }
 
@@ -102,7 +98,6 @@ func SendRetweet(client *twitter.Client, searchQuery string) *twitter.Tweet {
 	if err != nil {
 		log.Print(err)
 	}
-	// saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "retweet")
 
 	// log.Printf("%+v\n", resp)
 	log.Printf("%+v\n", retweet)
@@ -120,7 +115,6 @@ func LikeTweet(client *twitter.Client, searchQuery string) *twitter.Tweet {
 	if err != nil {
 		log.Print(err)
 	}
-	// saveTweet(search.Statuses[0].ID, search.Statuses[0].Text, "like")
 
 	log.Printf("%+v\n", like)
 	return like
@@ -147,7 +141,7 @@ func initDB() *gorm.DB {
 
 func saveTweet(db *gorm.DB, tweetID int64, tweetText string, tweetAction string) *gorm.DB {
 
-	// Create
+	// Create a new DB entry
 	return db.Create(&tweet{tweetID: tweetID, Text: tweetText, Action: tweetAction})
 }
 
@@ -165,12 +159,7 @@ func main() {
 		log.Println(err)
 	}
 	searchQuery := "Golang"
-	// testTweet := "*beep* Another test tweet from my bot. Checking data persistence. *beep*"
-	// Examples of how to use the various functions this bot has
-	// SendTweet(client, testTweet)
 
-	// SendRetweet(client, searchQuery)
-	// LikeTweet(client, searchQuery)
 	db := initDB()
 
 	server := echo.New()
@@ -229,13 +218,6 @@ func main() {
 		SendTweet(client, tweetText)
 		return context.JSON(http.StatusOK, tweetText)
 	})
-
-	// server.GET("/tweet", func(context echo.Context) error {
-	//
-	// 	tweetText := "*beep, boop* A test tweet from my bot *beep, boop*"
-	//
-	// 	return context.JSON(http.StatusOK, tweetText)
-	// })
 
 	defer db.Close()
 
