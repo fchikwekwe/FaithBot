@@ -154,6 +154,14 @@ func saveTweet(db *gorm.DB, tweetID int64, tweetText string, tweetAction string)
 	return db.Create(&tweet{tweetID: tweetID, Text: tweetText, Action: tweetAction})
 }
 
+func createTweet(context echo.Context) error {
+	newTweet := context.FormValue("")
+
+	log.Print(newTweet)
+
+	return context.JSON(200, newTweet)
+}
+
 func main() {
 	// Get auth credentials and the Twitter client
 	creds := GetCreds()
@@ -179,7 +187,7 @@ func main() {
 			<br>
 			<a href='/like'>To like a tweet a searched tweet about Golang, click here.</a>
 			<br>
-			<a href='/tweet'>To send a tweet, click here.</a>
+			<a href='/tweetText'>To send a tweet, click here.</a>
 			<br>
 			<a href='/retweet'> To send a retweet a searched tweet about Golang, click here.</a>
 			<br>`)
@@ -211,6 +219,18 @@ func main() {
 
 		return context.JSON(http.StatusOK, search.Statuses[0].Text)
 	})
+
+	server.GET("/tweetText", func(context echo.Context) error {
+		return context.HTML(http.StatusOK, `
+			<form method=POST action='/tweets'>
+				<label for='tweetText'>Enter the text for your tweet:</label>
+				<input id='tweetText' type='text'>
+				<input type='submit' value='Submit'>
+			</form>
+			`)
+	})
+
+	server.POST("/tweets", createTweet)
 
 	server.GET("/tweet", func(context echo.Context) error {
 
