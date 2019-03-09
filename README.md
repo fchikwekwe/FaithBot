@@ -13,4 +13,4 @@ This is a social media tool that could help to automate some actions for a start
 Tweet Recall is currently is test-only mode 👩🏾‍🔬. It is not yet available for public use.
 
 ### Installation:
-To install this package type *go get github.com/fchikwekwe/FaithBot
+To install this package type *go get github.com/fchikwekwe/FaithBot*
