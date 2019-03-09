@@ -11,7 +11,7 @@ import (
 	// Import go-twitter modules
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
-	// Import echo
+	// Import echo and autoload
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/labstack/echo"
 )
@@ -166,15 +166,32 @@ func main() {
 
 	server.GET("/", func(context echo.Context) error {
 		return context.HTML(http.StatusOK, `
-			<a href='/search'>To search and save a tweet about Golang, click here.</a>
+			<a href='/search'> To search and save a tweet about Golang, click here.</a>
 			<br>
-			<a href='/like'>To like a tweet a searched tweet about Golang, click here.</a>
 			<br>
-			<a href='/tweetText'>To send a tweet, click here.</a>
+			<a href='/like'> To like a tweet a searched tweet about Golang, click here.</a>
+			<br>
+			<br>
+			<a href='/tweetText'> To send a tweet, click here.</a>
+			<br>
 			<br>
 			<a href='/retweet'> To send a retweet a searched tweet about Golang, click here.</a>
-			<br>`)
+			<br>
+			<br>
+			<br>
+			<a href='/archive'> To see all the tweets you've interacted with, click here.</a>
+			`)
 	})
+
+	// server.GET("/archive", func(context echo.Context) error {
+	// 	// var queryList []
+	// 	query := db.Find(&tweet{})
+	// 	fmt.Println(reflect.TypeOf(query))
+	// 	// for i := range query {
+	// 	// 	queryList = append(queryList, query)
+	// 	// }
+	// 	return context.JSON(http.StatusOK, query.Value)
+	// })
 
 	server.GET("/search", func(context echo.Context) error {
 
@@ -189,7 +206,6 @@ func main() {
 		search := SearchTweets(client, searchQuery)
 		LikeTweet(client, searchQuery)
 		saveTweet(db, search.Statuses[0].ID, search.Statuses[0].Text, "like")
-		// query := db.Find(&tweet{})
 
 		return context.JSON(http.StatusOK, search.Statuses[0].Text)
 	})

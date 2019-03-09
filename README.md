@@ -10,4 +10,7 @@ Tweet Recall is an application that will access the Twitter API in order to like
 
 This is a social media tool that could help to automate some actions for a startup with limited time to commit to interacting with their consumers online.
 
-Tweet Recall is currently is test-only mode 👩🏾‍🔬. It is not yet available for public use. 
+Tweet Recall is currently is test-only mode 👩🏾‍🔬. It is not yet available for public use.
+
+### Installation:
+To install this package type *go get github.com/fchikwekwe/FaithBot
